@@ -5,12 +5,14 @@ export interface SettingsState {
   theme: "oled" | "light";
   fontSize: "small" | "normal" | "large";
   randomize: boolean;
+  showAnswerImmediately: boolean;
 }
 
 const initialState: SettingsState = {
   theme: "oled",
   fontSize: "normal",
   randomize: false,
+  showAnswerImmediately: false,
 };
 
 const settingsSlice = createSlice({
@@ -29,8 +31,11 @@ const settingsSlice = createSlice({
     setRandomize: (state, action: PayloadAction<boolean>) => {
       state.randomize = action.payload;
     },
+    toggleShowAnswerImmediately: (state) => {
+      state.showAnswerImmediately = !state.showAnswerImmediately;
+    },
   },
 });
 
-export const { setSettings, toggleTheme, setFontSize, setRandomize } = settingsSlice.actions;
+export const { setSettings, toggleTheme, setFontSize, setRandomize, toggleShowAnswerImmediately } = settingsSlice.actions;
 export default settingsSlice.reducer;

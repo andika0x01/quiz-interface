@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
-import { setSettings } from "../store/slices/settingsSlice";
-import { Moon, Sun, Type, Shuffle } from "lucide-react";
+import { setSettings, toggleShowAnswerImmediately } from "../store/slices/settingsSlice";
+import { Moon, Sun, Type, Shuffle, Eye } from "lucide-react";
 
 const Settings = () => {
   const dispatch = useDispatch();
@@ -17,6 +17,10 @@ const Settings = () => {
 
   const toggleRandomize = () => {
     dispatch(setSettings({ randomize: !settings.randomize }));
+  };
+
+  const toggleImmediate = () => {
+    dispatch(toggleShowAnswerImmediately());
   };
 
   return (
@@ -82,6 +86,22 @@ const Settings = () => {
             </div>
             <button onClick={toggleRandomize} className={`w-14 h-8 rounded-full relative transition-colors ${settings.randomize ? "bg-zinc-700" : "bg-zinc-300"}`}>
               <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-all ${settings.randomize ? "left-7" : "left-1"}`} />
+            </button>
+          </div>
+        </section>
+
+        {/* Immediate Answer Setting */}
+        <section className="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/10 rounded-3xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Eye size={20} className="mr-3 shrink-0 dark:text-white" />
+              <div>
+                <h2 className="font-bold dark:text-white">Immediate Answer</h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Show result after each question</p>
+              </div>
+            </div>
+            <button onClick={toggleImmediate} className={`w-14 h-8 rounded-full relative transition-colors ${settings.showAnswerImmediately ? "bg-zinc-700" : "bg-zinc-300"}`}>
+              <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-all ${settings.showAnswerImmediately ? "left-7" : "left-1"}`} />
             </button>
           </div>
         </section>

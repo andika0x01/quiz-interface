@@ -110,17 +110,28 @@ const QuizReview = () => {
                     const isCorrectOption = question.type === "multi-select" ? question.correctAnswerIndices?.includes(oIdx) : question.correctAnswerIndex === oIdx;
 
                     let variant = "border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/2 text-zinc-400 dark:text-zinc-500 opacity-60";
+                    let icon = null;
+
                     if (isCorrectOption) {
-                      variant = "border-black dark:border-white bg-zinc-100 dark:bg-white/10 text-black dark:text-white font-bold";
+                      if (isUserSelected) {
+                        // Correctly picked
+                        variant = "border-black dark:border-white bg-zinc-100 dark:bg-white/10 text-black dark:text-white font-bold";
+                        icon = <CheckCircle2 className="text-black dark:text-white shrink-0" size={20} />;
+                      } else {
+                        // Missed correct answer
+                        variant = "border-dashed border-black/40 dark:border-white/40 bg-zinc-100/50 dark:bg-white/5 text-black/60 dark:text-white/60 font-bold";
+                        icon = <CheckCircle2 className="text-black/30 dark:text-white/30 shrink-0" size={20} />;
+                      }
                     } else if (isUserSelected && !isCorrectOption) {
+                      // Wrongly picked
                       variant = "border-zinc-400 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400";
+                      icon = <XCircle className="text-zinc-500 dark:text-zinc-400 shrink-0" size={20} />;
                     }
 
                     return (
                       <div key={oIdx} className={`w-full p-4 text-left border-2 rounded-2xl font-medium flex justify-between items-center transition-all ${variant}`}>
                         <MathJax className="flex-1">{option}</MathJax>
-                        {isCorrectOption && <CheckCircle2 className="text-black dark:text-white shrink-0" size={20} />}
-                        {isUserSelected && !isCorrectOption && <XCircle className="text-zinc-500 dark:text-zinc-400 shrink-0" size={20} />}
+                        {icon}
                       </div>
                     );
                   })

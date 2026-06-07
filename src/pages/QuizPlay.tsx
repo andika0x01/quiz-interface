@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
-import { ChevronRight, ChevronLeft, Award, Home, RotateCcw, Save } from "lucide-react";
+import { ChevronRight, ChevronLeft, Award, Home, RotateCcw, Save, CheckCircle2, XCircle } from "lucide-react";
 import { MathJax } from "better-react-mathjax";
 import { saveScore, updateActiveSession, clearActiveSession } from "../store/slices/quizSlice";
 
@@ -13,11 +13,13 @@ const QuizPlay = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const quiz = useSelector((state: RootState) => state.quiz.quizzes.find((q) => q.id === id));
+  const settings = useSelector((state: RootState) => state.settings);
 
   const activeSession = useSelector((state: RootState) => (id ? state.quiz.activeSessions[id] : null));
 
   const [currentIndex, setCurrentIndex] = useState(activeSession?.currentIndex || 0);
   const [answers, setAnswers] = useState<Record<number, any>>(activeSession?.answers || {});
+  const [checkedQuestions, setCheckedQuestions] = useState<Record<number, boolean>>({});
   const [isFinished, setIsFinished] = useState(false);
   const [finalScoreId, setFinalScoreId] = useState<string | null>(null);
 
@@ -60,6 +62,8 @@ const QuizPlay = () => {
   const currentQuestion = quizData[currentIndex];
 
   const handleAnswer = (answer: any) => {
+    if (settings.showAnswerImmediately && checkedQuestions[currentIndex]) return;
+
     if (currentQuestion.type === "multi-select") {
       const currentAnswers = Array.isArray(answers[currentIndex]) ? [...answers[currentIndex]] : [];
       const index = currentAnswers.indexOf(answer);
@@ -75,6 +79,10 @@ const QuizPlay = () => {
         [currentIndex]: answer,
       }));
     }
+  };
+
+  const handleCheckAnswer = () => {
+    setCheckedQuestions((prev) => ({ ...prev, [currentIndex]: true }));
   };
 
   const calculateScore = () => {
@@ -232,36 +240,79 @@ const QuizPlay = () => {
 
       <div className="space-y-4 mb-8">
         {currentQuestion.type === "short-answer" ? (
-          <input
-            type="text"
-            value={answers[currentIndex] || ""}
-            onChange={(e) => handleAnswer(e.target.value)}
-            placeholder="Type your answer here..."
-            className="w-full p-5 bg-zinc-100 dark:bg-white/5 border-2 border-zinc-200 dark:border-white/10 rounded-2xl font-medium outline-none transition-all dark:text-white focus:border-zinc-400 dark:focus:border-white/40 focus:bg-white dark:focus:bg-white/10 placeholder:text-zinc-600"
-          />
+          <div className="space-y-4">
+            <input
+              type="text"
+              value={answers[currentIndex] || ""}
+              onChange={(e) => handleAnswer(e.target.value)}
+              disabled={settings.showAnswerImmediately && checkedQuestions[currentIndex]}
+              placeholder="Type your answer here..."
+              className={`w-full p-5 bg-zinc-100 dark:bg-white/5 border-2 rounded-2xl font-medium outline-none transition-all dark:text-white placeholder:text-zinc-600 ${
+                settings.showAnswerImmediately && checkedQuestions[currentIndex]
+                  ? answers[currentIndex]?.trim().toLowerCase() === currentQuestion.correctAnswer?.trim().toLowerCase()
+                    ? "border-black dark:border-white"
+                    : "border-zinc-300 dark:border-zinc-700 opacity-80"
+                  : "border-zinc-200 dark:border-white/10 focus:border-zinc-400 dark:focus:border-white/40 focus:bg-white dark:focus:bg-white/10"
+              }`}
+            />
+            {settings.showAnswerImmediately &&
+              checkedQuestions[currentIndex] &&
+              answers[currentIndex]?.trim().toLowerCase() !== currentQuestion.correctAnswer?.trim().toLowerCase() && (
+                <div className="p-4 rounded-2xl border-2 border-black dark:border-white bg-zinc-100 dark:bg-white/5">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Correct Answer:</p>
+                  <p className="font-bold text-black dark:text-white">{currentQuestion.correctAnswer}</p>
+                </div>
+              )}
+          </div>
         ) : (
           currentQuestion.options?.map((option, index) => {
             const isSelected =
               currentQuestion.type === "multi-select" ? Array.isArray(answers[currentIndex]) && answers[currentIndex].includes(index) : answers[currentIndex] === index;
+
+            const isChecked = settings.showAnswerImmediately && checkedQuestions[currentIndex];
+            const isCorrectOption = currentQuestion.type === "multi-select" ? currentQuestion.correctAnswerIndices?.includes(index) : currentQuestion.correctAnswerIndex === index;
+
+            let variant = isSelected
+              ? "border-black dark:border-white bg-zinc-200 dark:bg-white/20 dark:text-white ring-2 ring-black/5 dark:ring-white/10"
+              : "border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:border-zinc-300 dark:hover:border-white/20";
+
+            let icon = null;
+            if (isChecked) {
+              if (isCorrectOption) {
+                if (isSelected) {
+                  variant = "border-black dark:border-white bg-zinc-100 dark:bg-white/10 text-black dark:text-white font-bold";
+                  icon = <CheckCircle2 className="text-black dark:text-white shrink-0" size={20} />;
+                } else {
+                  variant = "border-dashed border-black/40 dark:border-white/40 bg-zinc-100/50 dark:bg-white/5 text-black/60 dark:text-white/60 font-bold";
+                  icon = <CheckCircle2 className="text-black/30 dark:text-white/30 shrink-0" size={20} />;
+                }
+              } else if (isSelected && !isCorrectOption) {
+                variant = "border-zinc-400 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400";
+                icon = <XCircle className="text-zinc-500 dark:text-zinc-400 shrink-0" size={20} />;
+              } else {
+                variant = "border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/2 text-zinc-400 dark:text-zinc-500 opacity-60";
+              }
+            }
+
             return (
               <button
                 key={index}
                 onClick={() => handleAnswer(index)}
-                className={`w-full p-5 text-left border-2 rounded-2xl font-medium transition-all ${
-                  isSelected
-                    ? "border-black dark:border-white bg-zinc-200 dark:bg-white/20 dark:text-white ring-2 ring-black/5 dark:ring-white/10"
-                    : "border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:border-zinc-300 dark:hover:border-white/20"
-                }`}
+                disabled={isChecked}
+                className={`w-full p-5 text-left border-2 rounded-2xl font-medium transition-all ${variant}`}
               >
-                <div className="flex items-center">
-                  {currentQuestion.type === "multi-select" && (
-                    <div
-                      className={`w-5 h-5 rounded border mr-3 flex items-center justify-center ${isSelected ? "bg-black dark:bg-white border-black dark:border-white" : "border-zinc-400 dark:border-zinc-600"}`}
-                    >
-                      {isSelected && <div className="w-2 h-2 bg-white dark:bg-black rounded-sm" />}
-                    </div>
-                  )}
-                  <MathJax className="flex-1">{option}</MathJax>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center flex-1">
+                    {currentQuestion.type === "multi-select" && !isChecked && (
+                      <div
+                        className={`w-5 h-5 rounded border mr-3 flex items-center justify-center ${isSelected ? "bg-black dark:bg-white border-black dark:border-white" : "border-zinc-400 dark:border-zinc-600"}`}
+                      >
+                        {isSelected && <div className="w-2 h-2 bg-white dark:bg-black rounded-sm" />}
+                      </div>
+                    )}
+                    <MathJax className="flex-1">{option}</MathJax>
+                  </div>
+                  {icon}
                 </div>
               </button>
             );
@@ -283,7 +334,19 @@ const QuizPlay = () => {
           Previous
         </button>
 
-        {currentIndex === quizData.length - 1 ? (
+        {settings.showAnswerImmediately && !checkedQuestions[currentIndex] ? (
+          <button
+            onClick={handleCheckAnswer}
+            disabled={answers[currentIndex] === undefined || (Array.isArray(answers[currentIndex]) && answers[currentIndex].length === 0)}
+            className={`flex-1 flex items-center justify-center py-4 px-6 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
+              answers[currentIndex] === undefined || (Array.isArray(answers[currentIndex]) && answers[currentIndex].length === 0)
+                ? "bg-zinc-200 dark:bg-white/5 text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
+                : "bg-black dark:bg-white text-white dark:text-black hover:opacity-80"
+            }`}
+          >
+            Check Answer
+          </button>
+        ) : currentIndex === quizData.length - 1 ? (
           <button
             onClick={handleSubmit}
             className="flex-1 flex items-center justify-center py-4 px-6 rounded-2xl font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-80 transition-all shadow-xl active:scale-95"
