@@ -23,13 +23,22 @@ const QuizPlay = () => {
   const [isFinished, setIsFinished] = useState(false);
   const [finalScoreId, setFinalScoreId] = useState<string | null>(null);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const quizData = activeSession?.shuffledData || quiz?.data || [];
+  const currentQuestion = quizData[currentIndex];
 
   useEffect(() => {
     if (!quiz) {
       navigate("/");
     }
   }, [quiz, navigate]);
+
+  useEffect(() => {
+    if (currentQuestion?.type === "short-answer" && !isFinished) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [currentIndex, isFinished, currentQuestion?.type]);
 
   useEffect(() => {
     if (id) {
@@ -59,8 +68,6 @@ const QuizPlay = () => {
 
   if (!quiz || quizData.length === 0) return null;
 
-  const currentQuestion = quizData[currentIndex];
-
   const handleAnswer = (answer: any) => {
     if (settings.showAnswerImmediately && checkedQuestions[currentIndex]) return;
 
@@ -83,6 +90,14 @@ const QuizPlay = () => {
 
   const handleCheckAnswer = () => {
     setCheckedQuestions((prev) => ({ ...prev, [currentIndex]: true }));
+  };
+
+  const handleNext = () => {
+    if (currentIndex === quizData.length - 1) {
+      handleSubmit();
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
   };
 
   const calculateScore = () => {
@@ -242,9 +257,19 @@ const QuizPlay = () => {
         {currentQuestion.type === "short-answer" ? (
           <div className="space-y-4">
             <input
+              ref={inputRef}
               type="text"
               value={answers[currentIndex] || ""}
               onChange={(e) => handleAnswer(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  if (settings.showAnswerImmediately && !checkedQuestions[currentIndex]) {
+                    handleCheckAnswer();
+                  } else {
+                    handleNext();
+                  }
+                }
+              }}
               disabled={settings.showAnswerImmediately && checkedQuestions[currentIndex]}
               placeholder="Type your answer here..."
               className={`w-full p-5 bg-zinc-100 dark:bg-white/5 border-2 rounded-2xl font-medium outline-none transition-all dark:text-white placeholder:text-zinc-600 ${
@@ -337,29 +362,28 @@ const QuizPlay = () => {
         {settings.showAnswerImmediately && !checkedQuestions[currentIndex] ? (
           <button
             onClick={handleCheckAnswer}
-            disabled={answers[currentIndex] === undefined || (Array.isArray(answers[currentIndex]) && answers[currentIndex].length === 0)}
+            disabled={
+              currentQuestion.type !== "short-answer" && (answers[currentIndex] === undefined || (Array.isArray(answers[currentIndex]) && answers[currentIndex].length === 0))
+            }
             className={`flex-1 flex items-center justify-center py-4 px-6 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
-              answers[currentIndex] === undefined || (Array.isArray(answers[currentIndex]) && answers[currentIndex].length === 0)
+              currentQuestion.type !== "short-answer" && (answers[currentIndex] === undefined || (Array.isArray(answers[currentIndex]) && answers[currentIndex].length === 0))
                 ? "bg-zinc-200 dark:bg-white/5 text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
                 : "bg-black dark:bg-white text-white dark:text-black hover:opacity-80"
             }`}
           >
             Check Answer
           </button>
-        ) : currentIndex === quizData.length - 1 ? (
-          <button
-            onClick={handleSubmit}
-            className="flex-1 flex items-center justify-center py-4 px-6 rounded-2xl font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-80 transition-all shadow-xl active:scale-95"
-          >
-            Submit Quiz
-          </button>
         ) : (
           <button
-            onClick={() => setCurrentIndex((prev) => Math.min(quizData.length - 1, prev + 1))}
-            className="flex-1 flex items-center justify-center py-4 px-6 rounded-2xl font-bold bg-black dark:bg-zinc-100 text-white dark:text-black hover:opacity-80 transition-all shadow-xl active:scale-95"
+            onClick={handleNext}
+            className={`flex-1 flex items-center justify-center py-4 px-6 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
+              currentIndex === quizData.length - 1
+                ? "bg-black dark:bg-white text-white dark:text-black hover:opacity-80"
+                : "bg-black dark:bg-zinc-100 text-white dark:text-black hover:opacity-80"
+            }`}
           >
-            Next Question
-            <ChevronRight size={20} className="ml-1" />
+            {currentIndex === quizData.length - 1 ? "Submit Quiz" : "Next Question"}
+            {currentIndex !== quizData.length - 1 && <ChevronRight size={20} className="ml-1" />}
           </button>
         )}
       </div>
