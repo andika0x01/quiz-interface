@@ -223,7 +223,9 @@ const QuizPlay = () => {
         <div ref={scrollRef} className="flex gap-3 overflow-x-auto py-4 px-6 scroll-smooth">
           {quizData.map((_, index) => {
             const answer = answers[index];
-            const isAnswered = answer !== undefined && (typeof answer === "string" ? answer.trim() !== "" : Array.isArray(answer) ? answer.length > 0 : true);
+            const isAnswered = settings.showAnswerImmediately
+              ? checkedQuestions[index]
+              : answer !== undefined && (typeof answer === "string" ? answer.trim() !== "" : Array.isArray(answer) ? answer.length > 0 : true);
             const isActive = currentIndex === index;
 
             return (
