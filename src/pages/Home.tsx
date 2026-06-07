@@ -4,7 +4,7 @@ import type { RootState } from "../store";
 import { updateActiveSession, deleteQuiz } from "../store/slices/quizSlice";
 import type { Quiz } from "../store/slices/quizSlice";
 import { Link, useNavigate } from "react-router-dom";
-import { Play, Trash2, Award, AlertCircle } from "lucide-react";
+import { Play, Trash2, Award, AlertCircle, Share2, Check } from "lucide-react";
 
 const Home = () => {
   const quizzes = useSelector((state: RootState) => state.quiz.quizzes);
@@ -14,6 +14,8 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const getBestScore = (quizId: string) => {
     const quizScores = scores.filter((s) => s.quizId === quizId);
@@ -25,6 +27,34 @@ const Home = () => {
     if (deleteId) {
       dispatch(deleteQuiz(deleteId));
       setDeleteId(null);
+    }
+  };
+
+  const handleShare = async (quiz: Quiz) => {
+    setSharingId(quiz.id);
+    try {
+      const response = await fetch("/api/quizzes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: quiz.title,
+          data: quiz.data,
+        }),
+      });
+
+      if (response.ok) {
+        const { id } = await response.json();
+        const shareUrl = `${window.location.origin}/quiz/shared/${id}`;
+        await navigator.clipboard.writeText(shareUrl);
+        setCopiedId(quiz.id);
+        setTimeout(() => setCopiedId(null), 2000);
+      }
+    } catch (error) {
+      console.error("Failed to share quiz:", error);
+    } finally {
+      setSharingId(null);
     }
   };
 
@@ -110,9 +140,25 @@ const Home = () => {
                     <h2 className="text-xl font-semibold dark:text-white">{quiz.title}</h2>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">{quiz.data.length} Questions</p>
                   </div>
-                  <button onClick={() => setDeleteId(quiz.id)} className="p-2 text-zinc-400 hover:text-black dark:hover:text-white rounded-full transition-all" title="Delete Quiz">
-                    <Trash2 size={20} />
-                  </button>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleShare(quiz)}
+                      disabled={sharingId === quiz.id}
+                      className={`p-2 rounded-full transition-all ${
+                        copiedId === quiz.id ? "text-green-500 bg-green-500/10" : "text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10"
+                      }`}
+                      title="Share Quiz"
+                    >
+                      {copiedId === quiz.id ? <Check size={20} /> : <Share2 size={20} className={sharingId === quiz.id ? "animate-pulse" : ""} />}
+                    </button>
+                    <button
+                      onClick={() => setDeleteId(quiz.id)}
+                      className="p-2 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 rounded-full transition-all hover:bg-zinc-100 dark:hover:bg-white/10"
+                      title="Delete Quiz"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between">

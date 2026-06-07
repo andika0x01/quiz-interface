@@ -15,6 +15,13 @@
   },
   "upload_source_maps": true,
   "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "quiz-interface-db",
+      "database_id": "4d13edae-d017-4a24-b037-207a96059bd7",
+    },
+  ],
   /**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

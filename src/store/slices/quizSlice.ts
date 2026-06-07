@@ -50,7 +50,10 @@ const quizSlice = createSlice({
       state.activeSessions = action.payload.activeSessions || {};
     },
     addQuiz: (state, action: PayloadAction<Quiz>) => {
-      state.quizzes.push(action.payload);
+      const exists = state.quizzes.some((q) => q.id === action.payload.id);
+      if (!exists) {
+        state.quizzes.push(action.payload);
+      }
     },
     saveScore: (state, action: PayloadAction<Score>) => {
       state.scores.unshift(action.payload);

@@ -13,6 +13,7 @@ import QuizPlay from "./pages/QuizPlay.tsx";
 import History from "./pages/History.tsx";
 import QuizReview from "./pages/QuizReview.tsx";
 import Settings from "./pages/Settings.tsx";
+import SharedQuizLoader from "./pages/SharedQuizLoader.tsx";
 
 const mathJaxConfig = {
   loader: { load: ["input/tex", "output/chtml"] },
@@ -39,6 +40,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="create" element={<CreateQuiz />} />
               <Route path="history" element={<History />} />
               <Route path="quiz/:id" element={<QuizPlay />} />
+              <Route path="quiz/shared/:id" element={<SharedQuizLoader />} />
               <Route path="review/:scoreId" element={<QuizReview />} />
               <Route path="settings" element={<Settings />} />
             </Route>

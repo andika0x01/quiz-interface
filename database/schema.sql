@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS quizzes;
+CREATE TABLE quizzes (
+    id TEXT PRIMARY KEY,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

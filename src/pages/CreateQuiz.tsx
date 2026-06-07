@@ -56,7 +56,7 @@ Please provide a quiz about [TOPIC HERE] with at least 5 questions (mix of multi
     setJsonInputs(newInputs.length ? newInputs : [""]);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -111,8 +111,18 @@ Please provide a quiz about [TOPIC HERE] with at least 5 questions (mix of multi
         throw new Error("Please provide at least one valid JSON array of questions.");
       }
 
+      // Generate ID from content hash
+      const contentString = JSON.stringify({
+        title: title.trim(),
+        data: combinedData,
+      });
+      const msgUint8 = new TextEncoder().encode(contentString);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
       const newQuiz = {
-        id: crypto.randomUUID(),
+        id: hashHex,
         title: title.trim(),
         data: combinedData,
         createdAt: new Date().toISOString(),
