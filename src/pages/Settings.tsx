@@ -1,8 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
 import { setSettings } from "../store/slices/settingsSlice";
-import { Moon, Sun, Type, Shuffle, ChevronLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Moon, Sun, Type, Shuffle } from "lucide-react";
 
 const Settings = () => {
   const dispatch = useDispatch();
