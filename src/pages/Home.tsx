@@ -99,6 +99,7 @@ const Home = () => {
         quizId: quiz.id,
         currentIndex: 0,
         answers: {},
+        checkedQuestions: {},
         shuffledData: quizData,
       })
     );

@@ -19,7 +19,7 @@ const QuizPlay = () => {
 
   const [currentIndex, setCurrentIndex] = useState(activeSession?.currentIndex || 0);
   const [answers, setAnswers] = useState<Record<number, any>>(activeSession?.answers || {});
-  const [checkedQuestions, setCheckedQuestions] = useState<Record<number, boolean>>({});
+  const [checkedQuestions, setCheckedQuestions] = useState<Record<number, boolean>>(activeSession?.checkedQuestions || {});
   const [isFinished, setIsFinished] = useState(false);
   const [finalScoreId, setFinalScoreId] = useState<string | null>(null);
 
@@ -47,11 +47,12 @@ const QuizPlay = () => {
           quizId: id,
           currentIndex,
           answers,
+          checkedQuestions,
           shuffledData: activeSession?.shuffledData,
         })
       );
     }
-  }, [id, currentIndex, answers, dispatch]);
+  }, [id, currentIndex, answers, checkedQuestions, dispatch]);
 
   useEffect(() => {
     // Scroll active question into view
