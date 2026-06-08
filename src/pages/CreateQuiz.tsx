@@ -76,7 +76,7 @@ Please provide a quiz about [TOPIC HERE] with at least 5 questions (mix of multi
         try {
           parsedData = JSON.parse(input) as Question[];
         } catch (parseErr) {
-          throw new Error(`Invalid JSON format in Source ${i + 1}`);
+          throw new Error(`Invalid JSON format in Source ${i + 1}`, { cause: parseErr });
         }
 
         if (!Array.isArray(parsedData) || parsedData.length === 0) {

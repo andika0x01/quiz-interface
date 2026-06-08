@@ -51,7 +51,7 @@ const QuizReview = () => {
       <div className="space-y-8">
         {scoreRecord.questions.map((question, qIdx) => {
           const userAnswer = scoreRecord.userAnswers[qIdx];
-          let isCorrect = false;
+          let isCorrect: boolean;
 
           if (question.type === "short-answer") {
             isCorrect = typeof userAnswer === "string" && userAnswer.trim().toLowerCase() === question.correctAnswer?.trim().toLowerCase();

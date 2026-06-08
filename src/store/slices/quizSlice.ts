@@ -25,13 +25,16 @@ export interface Score {
   totalQuestions: number;
   timestamp: string;
   questions: Question[];
-  userAnswers: Record<number, any>;
+  userAnswers: Record<number, string | number | number[]>;
 }
 
 interface QuizState {
   quizzes: Quiz[];
   scores: Score[];
-  activeSessions: Record<string, { currentIndex: number; answers: Record<number, any>; checkedQuestions?: Record<number, boolean>; shuffledData?: Question[] }>;
+  activeSessions: Record<
+    string,
+    { currentIndex: number; answers: Record<number, string | number | number[]>; checkedQuestions?: Record<number, boolean>; shuffledData?: Question[] }
+  >;
 }
 
 const initialState: QuizState = {
@@ -65,7 +68,16 @@ const quizSlice = createSlice({
     deleteScore: (state, action: PayloadAction<string>) => {
       state.scores = state.scores.filter((score) => score.id !== action.payload);
     },
-    updateActiveSession: (state, action: PayloadAction<{ quizId: string; currentIndex: number; answers: Record<number, any>; checkedQuestions?: Record<number, boolean>; shuffledData?: Question[] }>) => {
+    updateActiveSession: (
+      state,
+      action: PayloadAction<{
+        quizId: string;
+        currentIndex: number;
+        answers: Record<number, string | number | number[]>;
+        checkedQuestions?: Record<number, boolean>;
+        shuffledData?: Question[];
+      }>
+    ) => {
       state.activeSessions[action.payload.quizId] = {
         currentIndex: action.payload.currentIndex,
         answers: action.payload.answers,

@@ -18,7 +18,7 @@ const QuizPlay = () => {
   const activeSession = useSelector((state: RootState) => (id ? state.quiz.activeSessions[id] : null));
 
   const [currentIndex, setCurrentIndex] = useState(activeSession?.currentIndex || 0);
-  const [answers, setAnswers] = useState<Record<number, any>>(activeSession?.answers || {});
+  const [answers, setAnswers] = useState<Record<number, string | number | number[]>>(activeSession?.answers || {});
   const [checkedQuestions, setCheckedQuestions] = useState<Record<number, boolean>>(activeSession?.checkedQuestions || {});
   const [isFinished, setIsFinished] = useState(false);
   const [finalScoreId, setFinalScoreId] = useState<string | null>(null);
@@ -52,7 +52,7 @@ const QuizPlay = () => {
         })
       );
     }
-  }, [id, currentIndex, answers, checkedQuestions, dispatch]);
+  }, [id, currentIndex, answers, checkedQuestions, dispatch, activeSession?.shuffledData]);
 
   useEffect(() => {
     // Scroll active question into view
@@ -69,16 +69,17 @@ const QuizPlay = () => {
 
   if (!quiz || quizData.length === 0) return null;
 
-  const handleAnswer = (answer: any) => {
+  const handleAnswer = (answer: string | number) => {
     if (settings.showAnswerImmediately && checkedQuestions[currentIndex]) return;
 
     if (currentQuestion.type === "multi-select") {
-      const currentAnswers = Array.isArray(answers[currentIndex]) ? [...answers[currentIndex]] : [];
-      const index = currentAnswers.indexOf(answer);
-      if (index > -1) {
-        currentAnswers.splice(index, 1);
+      const currentAnswers = Array.isArray(answers[currentIndex]) ? [...(answers[currentIndex] as number[])] : [];
+      const index = answer as number;
+      const foundIndex = currentAnswers.indexOf(index);
+      if (foundIndex > -1) {
+        currentAnswers.splice(foundIndex, 1);
       } else {
-        currentAnswers.push(answer);
+        currentAnswers.push(index);
       }
       setAnswers((prev) => ({ ...prev, [currentIndex]: currentAnswers }));
     } else {
@@ -152,6 +153,7 @@ const QuizPlay = () => {
   const restartQuiz = () => {
     setCurrentIndex(0);
     setAnswers({});
+    setCheckedQuestions({});
     setIsFinished(false);
     setFinalScoreId(null);
   };
@@ -262,7 +264,7 @@ const QuizPlay = () => {
             <input
               ref={inputRef}
               type="text"
-              value={answers[currentIndex] || ""}
+              value={(answers[currentIndex] as string) || ""}
               onChange={(e) => handleAnswer(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -277,7 +279,7 @@ const QuizPlay = () => {
               placeholder="Type your answer here..."
               className={`w-full p-5 bg-zinc-100 dark:bg-white/5 border-2 rounded-2xl font-medium outline-none transition-all dark:text-white placeholder:text-zinc-600 ${
                 settings.showAnswerImmediately && checkedQuestions[currentIndex]
-                  ? answers[currentIndex]?.trim().toLowerCase() === currentQuestion.correctAnswer?.trim().toLowerCase()
+                  ? (answers[currentIndex] as string)?.trim().toLowerCase() === currentQuestion.correctAnswer?.trim().toLowerCase()
                     ? "border-black dark:border-white"
                     : "border-zinc-300 dark:border-zinc-700 opacity-80"
                   : "border-zinc-200 dark:border-white/10 focus:border-zinc-400 dark:focus:border-white/40 focus:bg-white dark:focus:bg-white/10"
@@ -285,7 +287,7 @@ const QuizPlay = () => {
             />
             {settings.showAnswerImmediately &&
               checkedQuestions[currentIndex] &&
-              answers[currentIndex]?.trim().toLowerCase() !== currentQuestion.correctAnswer?.trim().toLowerCase() && (
+              (answers[currentIndex] as string)?.trim().toLowerCase() !== currentQuestion.correctAnswer?.trim().toLowerCase() && (
                 <div className="p-4 rounded-2xl border-2 border-black dark:border-white bg-zinc-100 dark:bg-white/5">
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Correct Answer:</p>
                   <p className="font-bold text-black dark:text-white">{currentQuestion.correctAnswer}</p>
